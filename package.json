@@ -48,7 +48,8 @@
   },
   "files": [
     "dist/*",
-    "README.md"
+    "README.md",
+    "src"
   ],
   "scripts": {
     "format": "biome format . --write",
@@ -78,7 +79,8 @@
     "types:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.types.json --watch",
     "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./dist/_cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./dist/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
-    "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json"
+    "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
+    "prepare": "bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
