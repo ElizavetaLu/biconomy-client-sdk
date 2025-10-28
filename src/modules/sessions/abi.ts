@@ -1,95 +1,101 @@
 import {
-  type AbiFunction,
-  type ByteArray,
-  type Chain,
-  type Hex,
-  concat,
-  pad,
-  slice,
-  toFunctionSelector,
-  toHex,
+	type AbiFunction,
+	type ByteArray,
+	type Chain,
+	type Hex,
+	concat,
+	pad,
+	slice,
+	toFunctionSelector,
+	toHex,
 } from "viem";
 import {
-  type CreateSessionDataParams,
-  type DanModuleInfo,
-  type SessionParams,
-  createSessionKeyManagerModule,
-  didProvideFullSession,
-  resumeSession,
+	type CreateSessionDataParams,
+	type DanModuleInfo,
+	type SessionParams,
+	createSessionKeyManagerModule,
+	didProvideFullSession,
+	resumeSession,
 } from "../";
 import {
-  type BiconomySmartAccountV2,
-  type BuildUserOpOptions,
-  ERROR_MESSAGES,
-  Logger,
-  type Transaction,
-  getChain
-} from "../../account"
-import type { UserOpResponse } from "../../bundler/utils/Types"
-import { extractChainIdFromBundlerUrl } from "../../bundler/utils/Utils"
-import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { createSessionKeyEOA } from "../session-storage/utils"
+	type BiconomySmartAccountV2,
+	type BuildUserOpOptions,
+	ERROR_MESSAGES,
+	Logger,
+	type Transaction,
+	getChain,
+} from "../../account";
+import type { UserOpResponse } from "../../bundler/utils/Types";
+import { extractChainIdFromBundlerUrl } from "../../bundler/utils/Utils";
+import type { ISessionStorage } from "../interfaces/ISessionStorage";
+import { createSessionKeyEOA } from "../session-storage/utils";
 import {
-  DEFAULT_ABI_SVM_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+	DEFAULT_ABI_SVM_MODULE,
+	DEFAULT_SESSION_KEY_MANAGER_MODULE,
 } from "../utils/Constants";
 import type { Permission, SessionSearchParam } from "../utils/Helper";
 import type { DeprecatedPermission, Rule } from "../utils/Helper";
 
 export type SessionConfig = {
-  usersAccountAddress: Hex;
-  smartAccount: BiconomySmartAccountV2;
+	usersAccountAddress: Hex;
+	smartAccount: BiconomySmartAccountV2;
 };
 
 export type Session = {
-  /** The storage client specific to the smartAccountAddress which stores the session keys */
-  sessionStorageClient: ISessionStorage;
-  /** The relevant sessionID for the chosen session */
-  sessionIDInfo: string[];
+	/** The storage client specific to the smartAccountAddress which stores the session keys */
+	sessionStorageClient: ISessionStorage;
+	/** The relevant sessionID for the chosen session */
+	sessionIDInfo: string[];
 };
 
 export type SessionEpoch = {
-  /** The time at which the session is no longer valid */
-  validUntil?: number;
-  /** The time at which the session becomes valid */
-  validAfter?: number;
+	/** The time at which the session is no longer valid */
+	validUntil?: number;
+	/** The time at which the session becomes valid */
+	validAfter?: number;
 };
 
 export const PolicyHelpers = {
-  Indefinitely: { validUntil: 0, validAfter: 0 },
-  NoValueLimit: 0n,
+	Indefinitely: { validUntil: 0, validAfter: 0 },
+	NoValueLimit: 0n,
 };
 const RULE_CONDITIONS = [
-  "EQUAL",
-  "LASS_THAN_OR_EQUAL",
-  "LESS_THAN",
-  "GREATER_THAN_OR_EQUAL",
-  "GREATER_THAN",
-  "NOT_EQUAL"
+	"EQUAL",
+	"LASS_THAN_OR_EQUAL",
+	"LESS_THAN",
+	"GREATER_THAN_OR_EQUAL",
+	"GREATER_THAN",
+	"NOT_EQUAL",
 ];
-type RuleCondition = "EQUAL" | "LASS_THAN_OR_EQUAL" | "LESS_THAN" | "GREATER_THAN_OR_EQUAL" | "GREATER_THAN" | "NOT_EQUAL";
+type RuleCondition =
+	| "EQUAL"
+	| "LASS_THAN_OR_EQUAL"
+	| "LESS_THAN"
+	| "GREATER_THAN_OR_EQUAL"
+	| "GREATER_THAN"
+	| "NOT_EQUAL";
 export const RuleHelpers = {
-  OffsetByIndex: (i: number) => i * 32,
-  Condition: (condition: RuleCondition) => RULE_CONDITIONS.indexOf(condition),
+	OffsetByIndex: (i: number) => i * 32,
+	Condition: (condition: RuleCondition) => RULE_CONDITIONS.indexOf(condition),
 };
 
 export type PolicyWithOptionalSessionKey = Omit<Policy, "sessionKeyAddress"> & {
-  sessionKeyAddress?: Hex;
+	sessionKeyAddress?: Hex;
 };
 
 export type Policy = {
-  /** The address of the contract to be included in the policy */
-  contractAddress: Hex;
-  /** The address of the sessionKey upon which the policy is to be imparted */
-  sessionKeyAddress: Hex;
-  /** The specific function selector from the contract to be included in the policy */
-  functionSelector: string | AbiFunction;
-  /** The rules  to be included in the policy */
-  rules: Rule[];
-  /** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely */
-  interval?: SessionEpoch;
-  /** The maximum value that can be transferred in a single transaction */
-  valueLimit: bigint;
+	/** The address of the contract to be included in the policy */
+	contractAddress: Hex;
+	/** The address of the sessionKey upon which the policy is to be imparted */
+	sessionKeyAddress: Hex;
+	/** The specific function selector from the contract to be included in the policy */
+	functionSelector: string | AbiFunction;
+	/** The rules  to be included in the policy */
+	rules: Rule[];
+	/** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely */
+	interval?: SessionEpoch;
+	/** The maximum value that can be transferred in a single transaction */
+	valueLimit: bigint;
 };
 
 export type SessionGrantedPayload = UserOpResponse & { session: Session };
@@ -166,93 +172,93 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session };
  * ```
  */
 export const createSession = async (
-  smartAccount: BiconomySmartAccountV2,
-  policy: PolicyWithOptionalSessionKey[],
-  sessionStorageClient?: ISessionStorage | null,
-  buildUseropDto?: BuildUserOpOptions,
+	smartAccount: BiconomySmartAccountV2,
+	policy: PolicyWithOptionalSessionKey[],
+	sessionStorageClient?: ISessionStorage | null,
+	buildUseropDto?: BuildUserOpOptions,
 ): Promise<SessionGrantedPayload> => {
-  const smartAccountAddress = await smartAccount.getAddress();
-  const defaultedChainId = extractChainIdFromBundlerUrl(
-    smartAccount?.bundler?.getBundlerUrl() ?? "",
-  );
+	const smartAccountAddress = await smartAccount.getAddress();
+	const defaultedChainId = extractChainIdFromBundlerUrl(
+		smartAccount?.bundler?.getBundlerUrl() ?? "",
+	);
 
-  if (!defaultedChainId) {
-    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND);
-  }
+	if (!defaultedChainId) {
+		throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND);
+	}
 
-  const chain = getChain(defaultedChainId);
-  const {
-    sessionKeyAddress,
-    sessionStorageClient: storageClientFromCreateKey,
-  } = await createSessionKeyEOA(smartAccount, chain);
+	const chain = getChain(defaultedChainId);
+	const {
+		sessionKeyAddress,
+		sessionStorageClient: storageClientFromCreateKey,
+	} = await createSessionKeyEOA(smartAccount, chain);
 
-  const defaultedSessionStorageClient =
-    sessionStorageClient ?? storageClientFromCreateKey;
-  const sessionsModule = await createSessionKeyManagerModule({
-    smartAccountAddress,
-    sessionStorageClient: defaultedSessionStorageClient,
-  });
+	const defaultedSessionStorageClient =
+		sessionStorageClient ?? storageClientFromCreateKey;
+	const sessionsModule = await createSessionKeyManagerModule({
+		smartAccountAddress,
+		sessionStorageClient: defaultedSessionStorageClient,
+	});
 
-  const defaultedPolicy: Policy[] = policy.map((p) =>
-    !p.sessionKeyAddress ? { ...p, sessionKeyAddress } : (p as Policy),
-  );
-  const humanReadablePolicyArray = defaultedPolicy.map(createABISessionDatum);
+	const defaultedPolicy: Policy[] = policy.map((p) =>
+		!p.sessionKeyAddress ? { ...p, sessionKeyAddress } : (p as Policy),
+	);
+	const humanReadablePolicyArray = defaultedPolicy.map(createABISessionDatum);
 
-  const { data: policyData, sessionIDInfo } =
-    await sessionsModule.createSessionData(humanReadablePolicyArray);
+	const { data: policyData, sessionIDInfo } =
+		await sessionsModule.createSessionData(humanReadablePolicyArray);
 
-  const permitTx = {
-    to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    data: policyData,
-  };
+	const permitTx = {
+		to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+		data: policyData,
+	};
 
-  const txs: Transaction[] = [];
+	const txs: Transaction[] = [];
 
-  const isDeployed = await smartAccount.isAccountDeployed();
-  const enableSessionTx = await smartAccount.getEnableModuleData(
-    DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  );
+	const isDeployed = await smartAccount.isAccountDeployed();
+	const enableSessionTx = await smartAccount.getEnableModuleData(
+		DEFAULT_SESSION_KEY_MANAGER_MODULE,
+	);
 
-  if (isDeployed) {
-    const enabled = await smartAccount.isModuleEnabled(
-      DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    );
-    if (!enabled) {
-      txs.push(enableSessionTx);
-    }
-  } else {
-    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
-    txs.push(enableSessionTx);
-  }
+	if (isDeployed) {
+		const enabled = await smartAccount.isModuleEnabled(
+			DEFAULT_SESSION_KEY_MANAGER_MODULE,
+		);
+		if (!enabled) {
+			txs.push(enableSessionTx);
+		}
+	} else {
+		Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
+		txs.push(enableSessionTx);
+	}
 
-  txs.push(permitTx);
+	txs.push(permitTx);
 
-  const userOpResponse = await smartAccount.sendTransaction(
-    txs,
-    buildUseropDto,
-  );
+	const userOpResponse = await smartAccount.sendTransaction(
+		txs,
+		buildUseropDto,
+	);
 
-  return {
-    session: {
-      sessionStorageClient: defaultedSessionStorageClient,
-      sessionIDInfo,
-    },
-    ...userOpResponse,
-  };
+	return {
+		session: {
+			sessionStorageClient: defaultedSessionStorageClient,
+			sessionIDInfo,
+		},
+		...userOpResponse,
+	};
 };
 
 export type HardcodedFunctionSelector = {
-  raw: Hex;
+	raw: Hex;
 };
 
 export type CreateSessionDatumParams = {
-  interval?: SessionEpoch;
-  sessionKeyAddress: Hex;
-  contractAddress: Hex;
-  functionSelector: string | AbiFunction | HardcodedFunctionSelector;
-  rules: Rule[];
-  valueLimit: bigint;
-  danModuleInfo?: DanModuleInfo;
+	interval?: SessionEpoch;
+	sessionKeyAddress: Hex;
+	contractAddress: Hex;
+	functionSelector: string | AbiFunction | HardcodedFunctionSelector;
+	rules: Rule[];
+	valueLimit: bigint;
+	danModuleInfo?: DanModuleInfo;
 };
 
 /**
@@ -266,109 +272,109 @@ export type CreateSessionDatumParams = {
  * @returns {@link CreateSessionDataParams}
  */
 export const createABISessionDatum = ({
-  /** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely {@link SessionEpoch} */
-  interval,
-  /** The sessionKeyAddress upon which the policy is to be imparted. Used as a reference to the stored session keys */
-  sessionKeyAddress,
-  /** The address of the contract to be included in the policy */
-  contractAddress,
-  /** The specific function selector from the contract to be included in the policy */
-  functionSelector,
-  /** The rules to be included in the policy */
-  rules,
-  /** The maximum value that can be transferred in a single transaction */
-  valueLimit,
-  /** information pertinent to the DAN module */
-  danModuleInfo,
+	/** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely {@link SessionEpoch} */
+	interval,
+	/** The sessionKeyAddress upon which the policy is to be imparted. Used as a reference to the stored session keys */
+	sessionKeyAddress,
+	/** The address of the contract to be included in the policy */
+	contractAddress,
+	/** The specific function selector from the contract to be included in the policy */
+	functionSelector,
+	/** The rules to be included in the policy */
+	rules,
+	/** The maximum value that can be transferred in a single transaction */
+	valueLimit,
+	/** information pertinent to the DAN module */
+	danModuleInfo,
 }: CreateSessionDatumParams): CreateSessionDataParams => {
-  const { validUntil = 0, validAfter = 0 } = interval ?? {};
+	const { validUntil = 0, validAfter = 0 } = interval ?? {};
 
-  let parsedFunctionSelector: Hex = "0x";
+	let parsedFunctionSelector: Hex = "0x";
 
-  const rawFunctionSelectorWasProvided = !!(
-    functionSelector as HardcodedFunctionSelector
-  )?.raw;
+	const rawFunctionSelectorWasProvided = !!(
+		functionSelector as HardcodedFunctionSelector
+	)?.raw;
 
-  if (rawFunctionSelectorWasProvided) {
-    parsedFunctionSelector = (functionSelector as HardcodedFunctionSelector)
-      .raw;
-  } else {
-    const unparsedFunctionSelector = functionSelector as AbiFunction | string;
-    parsedFunctionSelector = slice(
-      toFunctionSelector(unparsedFunctionSelector),
-      0,
-      4,
-    );
-  }
+	if (rawFunctionSelectorWasProvided) {
+		parsedFunctionSelector = (functionSelector as HardcodedFunctionSelector)
+			.raw;
+	} else {
+		const unparsedFunctionSelector = functionSelector as AbiFunction | string;
+		parsedFunctionSelector = slice(
+			toFunctionSelector(unparsedFunctionSelector),
+			0,
+			4,
+		);
+	}
 
-  const result = {
-    validUntil,
-    validAfter,
-    sessionValidationModule: DEFAULT_ABI_SVM_MODULE,
-    sessionPublicKey: sessionKeyAddress,
-    sessionKeyData: getSessionDatum(sessionKeyAddress, {
-      destContract: contractAddress,
-      functionSelector: parsedFunctionSelector,
-      valueLimit,
-      rules,
-    }),
-  };
+	const result = {
+		validUntil,
+		validAfter,
+		sessionValidationModule: DEFAULT_ABI_SVM_MODULE,
+		sessionPublicKey: sessionKeyAddress,
+		sessionKeyData: getSessionDatum(sessionKeyAddress, {
+			destContract: contractAddress,
+			functionSelector: parsedFunctionSelector,
+			valueLimit,
+			rules,
+		}),
+	};
 
-  return danModuleInfo ? { ...result, danModuleInfo } : result;
+	return danModuleInfo ? { ...result, danModuleInfo } : result;
 };
 
 /**
  * @deprecated
  */
 export async function getABISVMSessionKeyData(
-  sessionKey: `0x${string}` | Uint8Array,
-  permission: DeprecatedPermission,
+	sessionKey: `0x${string}` | Uint8Array,
+	permission: DeprecatedPermission,
 ): Promise<`0x${string}` | Uint8Array> {
-  let sessionKeyData = concat([
-    sessionKey,
-    permission.destContract,
-    permission.functionSelector,
-    pad(toHex(permission.valueLimit), { size: 16 }),
-    pad(toHex(permission.rules.length), { size: 2 }), // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
-  ]) as `0x${string}`;
+	let sessionKeyData = concat([
+		sessionKey,
+		permission.destContract,
+		permission.functionSelector,
+		pad(toHex(permission.valueLimit), { size: 16 }),
+		pad(toHex(permission.rules.length), { size: 2 }), // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
+	]) as `0x${string}`;
 
-  for (let i = 0; i < permission.rules.length; i++) {
-    sessionKeyData = concat([
-      sessionKeyData,
-      pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
-      pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      permission.rules[i].referenceValue,
-    ]);
-  }
-  return sessionKeyData;
+	for (let i = 0; i < permission.rules.length; i++) {
+		sessionKeyData = concat([
+			sessionKeyData,
+			pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
+			pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
+			permission.rules[i].referenceValue,
+		]);
+	}
+	return sessionKeyData;
 }
 
 export function getSessionDatum(
-  sessionKeyAddress: Hex,
-  permission: Permission,
+	sessionKeyAddress: Hex,
+	permission: Permission,
 ): Hex {
-  let sessionKeyData = concat([
-    sessionKeyAddress,
-    permission.destContract,
-    permission.functionSelector,
-    pad(toHex(permission.valueLimit), { size: 16 }),
-    pad(toHex(permission.rules.length), { size: 2 }), // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
-  ]) as Hex;
+	let sessionKeyData = concat([
+		sessionKeyAddress,
+		permission.destContract,
+		permission.functionSelector,
+		pad(toHex(permission.valueLimit), { size: 16 }),
+		pad(toHex(permission.rules.length), { size: 2 }), // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
+	]) as Hex;
 
-  for (let i = 0; i < permission.rules.length; i++) {
-    sessionKeyData = concat([
-      sessionKeyData,
-      pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
-      pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      parseReferenceValue(permission.rules[i].referenceValue),
-    ]) as Hex;
-  }
+	for (let i = 0; i < permission.rules.length; i++) {
+		sessionKeyData = concat([
+			sessionKeyData,
+			pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
+			pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
+			parseReferenceValue(permission.rules[i].referenceValue),
+		]) as Hex;
+	}
 
-  return sessionKeyData;
+	return sessionKeyData;
 }
 
 export type HardcodedReference = {
-  raw: Hex;
+	raw: Hex;
 };
 type BaseReferenceValue = string | number | bigint | boolean | ByteArray;
 type AnyReferenceValue = BaseReferenceValue | HardcodedReference;
@@ -385,21 +391,21 @@ type AnyReferenceValue = BaseReferenceValue | HardcodedReference;
  * @returns Hex
  */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
-  try {
-    if ((referenceValue as HardcodedReference)?.raw) {
-      return (referenceValue as HardcodedReference)?.raw;
-    }
-    if (typeof referenceValue === "bigint") {
-      return pad(toHex(referenceValue), { size: 32 }) as Hex;
-    }
-    return pad(referenceValue as Hex, { size: 32 });
-  } catch (e) {
-    return pad(referenceValue as Hex, { size: 32 });
-  }
+	try {
+		if ((referenceValue as HardcodedReference)?.raw) {
+			return (referenceValue as HardcodedReference)?.raw;
+		}
+		if (typeof referenceValue === "bigint") {
+			return pad(toHex(referenceValue), { size: 32 }) as Hex;
+		}
+		return pad(referenceValue as Hex, { size: 32 });
+	} catch (e) {
+		return pad(referenceValue as Hex, { size: 32 });
+	}
 }
 
 export type SingleSessionParamsPayload = {
-  params: SessionParams;
+	params: SessionParams;
 };
 /**
  * getSingleSessionTxParams
@@ -413,28 +419,28 @@ export type SingleSessionParamsPayload = {
  *
  */
 export const getSingleSessionTxParams = async (
-  conditionalSession: SessionSearchParam,
-  chain: Chain,
-  correspondingIndex?: number | null | undefined,
+	conditionalSession: SessionSearchParam,
+	chain: Chain,
+	correspondingIndex?: number | null | undefined,
 ): Promise<SingleSessionParamsPayload> => {
-  const { sessionStorageClient } = await resumeSession(conditionalSession);
-  // if correspondingIndex is null then use the last session.
-  const allSessions = await sessionStorageClient.getAllSessionData();
-  const sessionID = didProvideFullSession(conditionalSession)
-    ? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
-    : allSessions[correspondingIndex ?? allSessions.length - 1].sessionID;
+	const { sessionStorageClient } = await resumeSession(conditionalSession);
+	// if correspondingIndex is null then use the last session.
+	const allSessions = await sessionStorageClient.getAllSessionData();
+	const sessionID = didProvideFullSession(conditionalSession)
+		? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
+		: allSessions[correspondingIndex ?? allSessions.length - 1].sessionID;
 
-  const sessionSigner = await sessionStorageClient.getSignerBySession(
-    {
-      sessionID,
-    },
-    chain,
-  );
+	const sessionSigner = await sessionStorageClient.getSignerBySession(
+		{
+			sessionID,
+		},
+		chain,
+	);
 
-  return {
-    params: {
-      sessionSigner,
-      sessionID,
-    },
-  };
+	return {
+		params: {
+			sessionSigner,
+			sessionID,
+		},
+	};
 };

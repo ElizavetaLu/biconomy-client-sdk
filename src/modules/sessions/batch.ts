@@ -1,33 +1,33 @@
-import type { Chain } from "viem"
+import type { Chain } from "viem";
 import {
-  type BiconomySmartAccountV2,
-  type BuildUserOpOptions,
-  ERROR_MESSAGES,
-  Logger,
-  type Transaction,
-  isNullOrUndefined
-} from "../../account"
+	type BiconomySmartAccountV2,
+	type BuildUserOpOptions,
+	ERROR_MESSAGES,
+	Logger,
+	type Transaction,
+	isNullOrUndefined,
+} from "../../account";
 import {
-  type CreateSessionDataParams,
-  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  type Session,
-  type SessionGrantedPayload,
-  type SessionParams,
-  type SessionSearchParam,
-  createBatchedSessionRouterModule,
-  createSessionKeyManagerModule,
-  didProvideFullSession,
-  resumeSession
-} from "../index.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage"
+	type CreateSessionDataParams,
+	DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+	DEFAULT_SESSION_KEY_MANAGER_MODULE,
+	type Session,
+	type SessionGrantedPayload,
+	type SessionParams,
+	type SessionSearchParam,
+	createBatchedSessionRouterModule,
+	createSessionKeyManagerModule,
+	didProvideFullSession,
+	resumeSession,
+} from "../index.js";
+import type { ISessionStorage } from "../interfaces/ISessionStorage";
 
 export type CreateBatchSessionConfig = {
-  /** The storage client to be used for storing the session data */
-  sessionStorageClient: ISessionStorage
-  /** An array of session configurations */
-  leaves: CreateSessionDataParams[]
-}
+	/** The storage client to be used for storing the session data */
+	sessionStorageClient: ISessionStorage;
+	/** An array of session configurations */
+	leaves: CreateSessionDataParams[];
+};
 
 /**
  *
@@ -119,77 +119,80 @@ export type CreateBatchSessionConfig = {
  */
 
 export const createBatchSession = async (
-  smartAccount: BiconomySmartAccountV2,
-  /** The storage client to be used for storing the session data */
-  sessionStorageClient: ISessionStorage,
-  /** An array of session configurations */
-  leaves: CreateSessionDataParams[],
-  buildUseropDto?: BuildUserOpOptions
+	smartAccount: BiconomySmartAccountV2,
+	/** The storage client to be used for storing the session data */
+	sessionStorageClient: ISessionStorage,
+	/** An array of session configurations */
+	leaves: CreateSessionDataParams[],
+	buildUseropDto?: BuildUserOpOptions,
 ): Promise<SessionGrantedPayload> => {
-  const smartAccountAddress = await smartAccount.getAddress()
+	const smartAccountAddress = await smartAccount.getAddress();
 
-  const sessionsModule = await createSessionKeyManagerModule({
-    smartAccountAddress,
-    sessionStorageClient
-  })
+	const sessionsModule = await createSessionKeyManagerModule({
+		smartAccountAddress,
+		sessionStorageClient,
+	});
 
-  // Create batched session module
-  const batchedSessionModule = await createBatchedSessionRouterModule({
-    smartAccountAddress,
-    sessionKeyManagerModule: sessionsModule
-  })
+	// Create batched session module
+	const batchedSessionModule = await createBatchedSessionRouterModule({
+		smartAccountAddress,
+		sessionKeyManagerModule: sessionsModule,
+	});
 
-  const { data: policyData, sessionIDInfo } =
-    await batchedSessionModule.createSessionData(leaves)
+	const { data: policyData, sessionIDInfo } =
+		await batchedSessionModule.createSessionData(leaves);
 
-  const permitTx = {
-    to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    data: policyData
-  }
+	const permitTx = {
+		to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+		data: policyData,
+	};
 
-  const isDeployed = await smartAccount.isAccountDeployed()
+	const isDeployed = await smartAccount.isAccountDeployed();
 
-  const txs: Transaction[] = []
-  const enableSessionKeyTx = await smartAccount.getEnableModuleData(
-    DEFAULT_SESSION_KEY_MANAGER_MODULE
-  )
-  const enableBatchedSessionTx = await smartAccount.getEnableModuleData(
-    DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-  )
-  if (isDeployed) {
-    const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
-      await Promise.all([
-        smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
-        smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
-      ])
+	const txs: Transaction[] = [];
+	const enableSessionKeyTx = await smartAccount.getEnableModuleData(
+		DEFAULT_SESSION_KEY_MANAGER_MODULE,
+	);
+	const enableBatchedSessionTx = await smartAccount.getEnableModuleData(
+		DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+	);
+	if (isDeployed) {
+		const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
+			await Promise.all([
+				smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
+				smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE),
+			]);
 
-    if (!isSessionModuleEnabled) {
-      txs.push(enableSessionKeyTx)
-    }
-    if (!isBatchedSessionModuleEnabled) {
-      txs.push(enableBatchedSessionTx)
-    }
-  } else {
-    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
-    txs.push(enableSessionKeyTx, enableBatchedSessionTx)
-  }
+		if (!isSessionModuleEnabled) {
+			txs.push(enableSessionKeyTx);
+		}
+		if (!isBatchedSessionModuleEnabled) {
+			txs.push(enableBatchedSessionTx);
+		}
+	} else {
+		Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
+		txs.push(enableSessionKeyTx, enableBatchedSessionTx);
+	}
 
-  txs.push(permitTx)
+	txs.push(permitTx);
 
-  const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
+	const userOpResponse = await smartAccount.sendTransaction(
+		txs,
+		buildUseropDto,
+	);
 
-  return {
-    session: {
-      sessionStorageClient,
-      sessionIDInfo
-    },
-    ...userOpResponse
-  }
-}
+	return {
+		session: {
+			sessionStorageClient,
+			sessionIDInfo,
+		},
+		...userOpResponse,
+	};
+};
 
 export type BatchSessionParamsPayload = {
-  params: { batchSessionParams: SessionParams[] }
-}
+	params: { batchSessionParams: SessionParams[] };
+};
 /**
  * getBatchSessionTxParams
  *
@@ -203,49 +206,49 @@ export type BatchSessionParamsPayload = {
  *
  */
 export const getBatchSessionTxParams = async (
-  transactions: Transaction[],
-  correspondingIndexes: number[] | null,
-  conditionalSession: SessionSearchParam,
-  chain: Chain
+	transactions: Transaction[],
+	correspondingIndexes: number[] | null,
+	conditionalSession: SessionSearchParam,
+	chain: Chain,
 ): Promise<BatchSessionParamsPayload> => {
-  if (
-    correspondingIndexes &&
-    correspondingIndexes.length !== transactions.length
-  ) {
-    throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
-  }
+	if (
+		correspondingIndexes &&
+		correspondingIndexes.length !== transactions.length
+	) {
+		throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES);
+	}
 
-  const { sessionStorageClient } = await resumeSession(conditionalSession)
-  let sessionIDInfo: string[] = []
+	const { sessionStorageClient } = await resumeSession(conditionalSession);
+	let sessionIDInfo: string[] = [];
 
-  const allSessions = await sessionStorageClient.getAllSessionData()
-  if (didProvideFullSession(conditionalSession)) {
-    sessionIDInfo = (conditionalSession as Session).sessionIDInfo
-  } else if (isNullOrUndefined(correspondingIndexes)) {
-    sessionIDInfo = allSessions
-      .slice(-transactions.length)
-      .map(({ sessionID }) => sessionID as string)
-  } else {
-    sessionIDInfo = (correspondingIndexes ?? []).map(
-      (index) => allSessions[index].sessionID as string
-    )
-  }
+	const allSessions = await sessionStorageClient.getAllSessionData();
+	if (didProvideFullSession(conditionalSession)) {
+		sessionIDInfo = (conditionalSession as Session).sessionIDInfo;
+	} else if (isNullOrUndefined(correspondingIndexes)) {
+		sessionIDInfo = allSessions
+			.slice(-transactions.length)
+			.map(({ sessionID }) => sessionID as string);
+	} else {
+		sessionIDInfo = (correspondingIndexes ?? []).map(
+			(index) => allSessions[index].sessionID as string,
+		);
+	}
 
-  const sessionSigner = await sessionStorageClient.getSignerBySession(
-    {
-      sessionID: sessionIDInfo[0]
-    },
-    chain
-  )
+	const sessionSigner = await sessionStorageClient.getSignerBySession(
+		{
+			sessionID: sessionIDInfo[0],
+		},
+		chain,
+	);
 
-  return {
-    params: {
-      batchSessionParams: sessionIDInfo.map(
-        (sessionID): SessionParams => ({
-          sessionSigner,
-          sessionID
-        })
-      )
-    }
-  }
-}
+	return {
+		params: {
+			batchSessionParams: sessionIDInfo.map(
+				(sessionID): SessionParams => ({
+					sessionSigner,
+					sessionID,
+				}),
+			),
+		},
+	};
+};
