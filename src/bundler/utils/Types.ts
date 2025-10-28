@@ -89,6 +89,7 @@ export type UserOpGasResponse = {
   callGasLimit: string
   maxPriorityFeePerGas: string
   maxFeePerGas: string
+  standard: any
 }
 
 // Converted to JsonRpcResponse with strict type
