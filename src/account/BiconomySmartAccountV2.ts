@@ -1362,6 +1362,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
+      fast,
+      slow,
       standard,
     } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
 
@@ -1371,9 +1373,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
+      fast,
+      slow,
       standard,
       'STAGE 1'
     );
+
+    if (fast) {
+      maxFeePerGas = fast.maxFeePerGas;
+      maxPriorityFeePerGas = fast.maxPriorityFeePerGas;
+    }
+
+    if (slow) {
+      maxFeePerGas = slow.maxFeePerGas;
+      maxPriorityFeePerGas = slow.maxPriorityFeePerGas;
+    }
 
     if (standard) {
       maxFeePerGas = standard.maxFeePerGas;
@@ -1564,8 +1578,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     sessionData?: GetSessionParams
   ): Promise<UserOpResponse> {
     let defaultedBuildUseropDto = { ...buildUseropDto };
-    console.log('lib this.sessionType: ', this.sessionType);
-    console.log('lib sessionData: ', sessionData);
+
     if (this.sessionType && sessionData) {
       const store = this.sessionStorageClient ?? sessionData?.store;
       const getSessionParameters = await this.getSessionParams({
@@ -1577,9 +1590,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         ...defaultedBuildUseropDto,
         ...getSessionParameters,
       };
-
-      console.log('lib store: ', store);
-      console.log('lib getSessionParameters: ', getSessionParameters);
     }
 
     const userOp = await this.buildUserOp(
@@ -1794,8 +1804,19 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
       console.log(gasFeeValues, 'STAGE 2');
 
+      if (gasFeeValues?.fast) {
+        gasFeeValues = gasFeeValues.fast;
+        console.log('fast: ', gasFeeValues);
+      }
+
+      if (gasFeeValues?.slow) {
+        gasFeeValues = gasFeeValues.slow;
+        console.log('slow: ', gasFeeValues);
+      }
+
       if (gasFeeValues?.standard) {
         gasFeeValues = gasFeeValues.standard;
+        console.log('standard: ', gasFeeValues);
       }
 
       // populate gasfee values and make a call to paymaster

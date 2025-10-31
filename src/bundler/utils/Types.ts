@@ -89,6 +89,8 @@ export type UserOpGasResponse = {
 	callGasLimit: string;
 	maxPriorityFeePerGas: string;
 	maxFeePerGas: string;
+	fast: any;
+	slow: any;
 	standard: any;
 };
 
