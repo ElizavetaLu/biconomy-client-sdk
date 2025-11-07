@@ -364,6 +364,8 @@ export class Bundler implements IBundler {
       'Bundler'
     );
 
+    console.log('getGasFeeValues response: ', response);
+
     if (response.result?.standard) {
       return response.result?.standard;
     }
