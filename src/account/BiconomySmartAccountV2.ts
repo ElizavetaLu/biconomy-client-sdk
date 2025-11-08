@@ -1362,23 +1362,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
-      standard,
     } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
-
-    console.log(
-      callGasLimit,
-      verificationGasLimit,
-      preVerificationGas,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      standard,
-      'STAGE 1'
-    );
-
-    if (standard) {
-      maxFeePerGas = standard.maxFeePerGas;
-      maxPriorityFeePerGas = standard.maxPriorityFeePerGas;
-    }
 
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (
@@ -1780,12 +1764,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.paymaster instanceof BiconomyPaymaster
     ) {
       let gasFeeValues: any = await this.bundler?.getGasFeeValues();
-
-      console.log(gasFeeValues, 'STAGE 2');
-
-      if (gasFeeValues?.standard) {
-        gasFeeValues = gasFeeValues.standard;
-      }
 
       // populate gasfee values and make a call to paymaster
       userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex;
