@@ -163,7 +163,7 @@ export class BiconomyPaymaster
     paymasterServiceData: FeeQuotesOrDataDto
   ): Promise<FeeQuotesOrDataResponse> {
     const userOp = await this.prepareUserOperation(_userOp);
-    console.log('lib userOp: ', userOp);
+
     let mode: PaymasterMode | null = null;
     let expiryDuration: number | null = null;
     const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true;
@@ -229,7 +229,7 @@ export class BiconomyPaymaster
         },
         'Paymaster'
       );
-      console.log('getPaymasterFeeQuotesOrData: ', response?.result);
+
       if (response?.result) {
         if (response.result.mode === PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> =
@@ -363,8 +363,6 @@ export class BiconomyPaymaster
         },
         'Paymaster'
       );
-
-      console.log('pm_sponsorUserOperation response: ',response)
 
       if (response?.result) {
         const paymasterAndData = response.result.paymasterAndData;

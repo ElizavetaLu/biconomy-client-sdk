@@ -444,7 +444,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       verificationGasLimit,
       maxFeePerGas,
     } = await this.buildUserOp(transactions, buildUseropDto);
-    console.log('getGasEstimate callGasLimit: ', callGasLimit);
+
     const _callGasLimit = BigInt(callGasLimit || 0);
     const _preVerificationGas = BigInt(preVerificationGas || 0);
     const _verificationGasLimit = BigInt(verificationGasLimit || 0);
@@ -1356,21 +1356,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const finalUserOp = userOp;
 
     // Making call to bundler to get gas estimations for userOp
-    let {
+    const {
       callGasLimit,
       verificationGasLimit,
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
     } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
-
+    console.log('callGasLimit from estimateUserOpGas', callGasLimit);
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (
       !userOp.maxFeePerGas &&
       !userOp.maxPriorityFeePerGas &&
       (!maxFeePerGas || !maxPriorityFeePerGas)
     ) {
-      const feeData: any = await this.provider.estimateFeesPerGas();
+      const feeData = await this.provider.estimateFeesPerGas();
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = `0x${feeData.maxFeePerGas.toString(
           16
@@ -1547,7 +1547,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     buildUseropDto?: BuildUserOpOptions,
     sessionData?: GetSessionParams
   ): Promise<UserOpResponse> {
-    let defaultedBuildUseropDto = { ...buildUseropDto };
+    let defaultedBuildUseropDto = { ...buildUseropDto } ?? {};
     if (this.sessionType && sessionData) {
       const store = this.sessionStorageClient ?? sessionData?.store;
       const getSessionParameters = await this.getSessionParams({
@@ -1763,7 +1763,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       buildUseropDto?.paymasterServiceData.mode === PaymasterMode.SPONSORED &&
       this.paymaster instanceof BiconomyPaymaster
     ) {
-      let gasFeeValues: any = await this.bundler?.getGasFeeValues();
+      const gasFeeValues = await this.bundler?.getGasFeeValues();
 
       // populate gasfee values and make a call to paymaster
       userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex;
