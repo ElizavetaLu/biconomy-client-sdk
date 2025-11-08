@@ -130,7 +130,7 @@ export class Bundler implements IBundler {
     );
 
     const userOpGasResponse = response.result;
-    console.log('estimateUserOpGas: ', userOpGasResponse)
+    console.log('estimateUserOpGas: ', userOpGasResponse);
     for (const key in userOpGasResponse) {
       if (key === 'maxFeePerGas' || key === 'maxPriorityFeePerGas') continue;
       if (
@@ -160,6 +160,8 @@ export class Bundler implements IBundler {
       simulation_type: simulationParam || 'validation',
     };
     const params = [userOp, this.bundlerConfig.entryPointAddress, simType];
+    console.log('eth_sendUserOperation params: ', params);
+
     const bundlerUrl = this.getBundlerUrl();
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest(
       {
@@ -278,6 +280,7 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpReceipt>
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
+     console.log('eth_sendUserOperation userOpHash: ', userOpHash);
     const bundlerUrl = this.getBundlerUrl();
     const response: GetUserOperationReceiptResponse = await sendRequest(
       {
