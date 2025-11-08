@@ -156,6 +156,10 @@ export class Bundler implements IBundler {
     const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
     const userOp = transformUserOP(_userOp);
+
+    delete userOp.initCode;
+    delete userOp.sender;
+    userOp.entryPointAddress = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
     const simType = {
       simulation_type: simulationParam || 'validation',
     };
@@ -177,7 +181,10 @@ export class Bundler implements IBundler {
       'Bundler'
     );
 
-      console.log('eth_sendUserOperation sendUserOperationResponse: ', sendUserOperationResponse);
+    console.log(
+      'eth_sendUserOperation sendUserOperationResponse: ',
+      sendUserOperationResponse
+    );
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
@@ -282,7 +289,7 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpReceipt>
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
-     console.log('eth_sendUserOperation userOpHash: ', userOpHash);
+    console.log('eth_sendUserOperation userOpHash: ', userOpHash);
     const bundlerUrl = this.getBundlerUrl();
     const response: GetUserOperationReceiptResponse = await sendRequest(
       {

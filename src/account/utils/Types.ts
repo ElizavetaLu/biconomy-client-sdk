@@ -415,11 +415,12 @@ export type BytesLike = Uint8Array | Hex;
 // this is used for building requests
 export interface UserOperationStruct {
 	/* the origin of the request */
-	sender: string;
+	sender?: string;
+	entryPointAddress?: string;
 	/* nonce of the transaction, returned from the entry point for this Address */
 	nonce: BigNumberish;
 	/* the initCode for creating the sender if it does not exist yet, otherwise "0x" */
-	initCode: BytesLike | "0x";
+	initCode?: BytesLike | "0x";
 	/* the callData passed to the target */
 	callData: BytesLike;
 	/* Value used by inner account execution */
