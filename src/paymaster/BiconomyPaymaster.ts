@@ -364,6 +364,8 @@ export class BiconomyPaymaster
         'Paymaster'
       );
 
+      console.log('pm_sponsorUserOperation response: ',response)
+
       if (response?.result) {
         const paymasterAndData = response.result.paymasterAndData;
         const preVerificationGas =
