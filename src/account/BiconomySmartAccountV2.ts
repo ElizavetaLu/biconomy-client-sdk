@@ -1370,7 +1370,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       !userOp.maxPriorityFeePerGas &&
       (!maxFeePerGas || !maxPriorityFeePerGas)
     ) {
-      const feeData = await this.provider.estimateFeesPerGas();
+      const feeData: any = await this.provider.estimateFeesPerGas();
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = `0x${feeData.maxFeePerGas.toString(
           16
@@ -1547,7 +1547,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     buildUseropDto?: BuildUserOpOptions,
     sessionData?: GetSessionParams
   ): Promise<UserOpResponse> {
-    let defaultedBuildUseropDto = { ...buildUseropDto } ?? {};
+    let defaultedBuildUseropDto = { ...buildUseropDto };
     if (this.sessionType && sessionData) {
       const store = this.sessionStorageClient ?? sessionData?.store;
       const getSessionParameters = await this.getSessionParams({
