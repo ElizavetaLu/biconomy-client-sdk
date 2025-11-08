@@ -1360,13 +1360,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const finalUserOp = userOp;
 
     // Making call to bundler to get gas estimations for userOp
+    const test = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
+    console.log('test callGasLimit distr estimateUserOpGas: ', test)
     const {
       callGasLimit,
       verificationGasLimit,
       preVerificationGas,
       maxFeePerGas,
       maxPriorityFeePerGas,
-    } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
+    } = test
     console.log('callGasLimit from estimateUserOpGas', callGasLimit);
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (

@@ -246,6 +246,7 @@ export class BiconomyPaymaster
           const preVerificationGas = response.result.preVerificationGas;
           const verificationGasLimit = response.result.verificationGasLimit;
           const callGasLimit = response.result.callGasLimit;
+          console.log('callGasLimit PaymasterMode.SPONSORED: ',callGasLimit)
           return {
             paymasterAndData: paymasterAndData,
             preVerificationGas: preVerificationGas,
@@ -276,6 +277,7 @@ export class BiconomyPaymaster
         Logger.warn(
           `Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`
         );
+        console.log('userOp.callGasLimit: ',userOp.callGasLimit)
         return {
           paymasterAndData: '0x',
           // send below values same as userOp gasLimits
@@ -372,6 +374,7 @@ export class BiconomyPaymaster
           response.result.verificationGasLimit ?? _userOp.verificationGasLimit;
         const callGasLimit =
           response.result.callGasLimit ?? _userOp.callGasLimit;
+          console.log("pm_sponsorUserOperation callGasLimit: ",callGasLimit)
         return {
           paymasterAndData: paymasterAndData,
           preVerificationGas: preVerificationGas,
