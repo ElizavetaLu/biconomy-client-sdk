@@ -156,14 +156,23 @@ export class Bundler implements IBundler {
     const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
     const userOp = transformUserOP(_userOp);
+    const test = {
+      callData: userOp.callData,
+      callGasLimit: userOp.callGasLimit,
+      maxFeePerGas: userOp.maxFeePerGas,
+      maxPriorityFeePerGas: userOp.maxPriorityFeePerGas,
+      nonce: userOp.nonce,
+      paymasterAndData: userOp.paymasterAndData,
+      preVerificationGas: userOp.preVerificationGas,
+      signature: userOp.signature,
+      verificationGasLimit: userOp.verificationGasLimit,
+      entryPointAddress: '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789',
+    };
 
-    delete userOp.initCode;
-    delete userOp.sender;
-    userOp.entryPointAddress = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
     const simType = {
       simulation_type: simulationParam || 'validation',
     };
-    const params = [userOp, this.bundlerConfig.entryPointAddress, simType];
+    const params = [test, this.bundlerConfig.entryPointAddress, simType];
     console.log('eth_sendUserOperation params: ', params);
 
     const bundlerUrl = this.getBundlerUrl();
