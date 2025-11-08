@@ -366,8 +366,17 @@ export class Bundler implements IBundler {
 
     console.log('getGasFeeValues response: ', response);
 
-    if (response.result?.standard) {
-      return response.result?.standard;
+    const standard = response.result?.standard;
+
+    if (standard) {
+      console.log('getGasFeeValues standard response: ', {
+        maxFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+        maxPriorityFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+      });
+      return {
+        maxFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+        maxPriorityFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+      };
     }
 
     return response.result;
