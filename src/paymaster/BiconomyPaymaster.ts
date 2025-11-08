@@ -229,7 +229,7 @@ export class BiconomyPaymaster
         },
         'Paymaster'
       );
-
+      console.log('getPaymasterFeeQuotesOrData: ', response?.result);
       if (response?.result) {
         if (response.result.mode === PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> =

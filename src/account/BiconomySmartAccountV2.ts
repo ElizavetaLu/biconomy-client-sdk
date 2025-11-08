@@ -444,7 +444,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       verificationGasLimit,
       maxFeePerGas,
     } = await this.buildUserOp(transactions, buildUseropDto);
-
+    console.log('getGasEstimate callGasLimit: ', callGasLimit);
     const _callGasLimit = BigInt(callGasLimit || 0);
     const _preVerificationGas = BigInt(preVerificationGas || 0);
     const _verificationGasLimit = BigInt(verificationGasLimit || 0);

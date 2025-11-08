@@ -130,6 +130,7 @@ export class Bundler implements IBundler {
     );
 
     const userOpGasResponse = response.result;
+    console.log('estimateUserOpGas: ', userOpGasResponse)
     for (const key in userOpGasResponse) {
       if (key === 'maxFeePerGas' || key === 'maxPriorityFeePerGas') continue;
       if (
