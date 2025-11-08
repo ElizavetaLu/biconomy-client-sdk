@@ -1567,7 +1567,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       defaultedBuildUseropDto
     );
-
+console.log('bic sendTransaction userOp: ',userOp)
     return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params });
   }
   /**
