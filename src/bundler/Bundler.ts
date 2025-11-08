@@ -176,6 +176,8 @@ export class Bundler implements IBundler {
       },
       'Bundler'
     );
+
+      console.log('eth_sendUserOperation sendUserOperationResponse: ', sendUserOperationResponse);
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
