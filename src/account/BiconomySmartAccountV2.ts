@@ -438,12 +438,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<bigint> {
+    const test = await this.buildUserOp(transactions, buildUseropDto);
+    console.log('buildUseropDto before distruct: ', buildUseropDto);
+    console.log('transactions before distruct: ', transactions);
+    console.log('test callGasLimit before distruct: ', test);
     const {
       callGasLimit,
       preVerificationGas,
       verificationGasLimit,
       maxFeePerGas,
-    } = await this.buildUserOp(transactions, buildUseropDto);
+    } = test;
 
     const _callGasLimit = BigInt(callGasLimit || 0);
     const _preVerificationGas = BigInt(preVerificationGas || 0);
@@ -1567,7 +1571,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       defaultedBuildUseropDto
     );
-console.log('bic sendTransaction userOp: ',userOp)
+    console.log('bic sendTransaction userOp: ', userOp);
     return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params });
   }
   /**
