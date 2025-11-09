@@ -375,14 +375,14 @@ export class Bundler implements IBundler {
       'Bundler'
     );
 
-    const standard = response.result?.standard;
+    // const standard = response.result?.standard;
 
-    if (standard) {
-      return {
-        maxFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
-        maxPriorityFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
-      };
-    }
+    // if (standard) {
+    //   return {
+    //     maxFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+    //     maxPriorityFeePerGas: parseInt(standard.maxFeePerGas, 16) + '',
+    //   };
+    // }
 
     return response.result;
   }
